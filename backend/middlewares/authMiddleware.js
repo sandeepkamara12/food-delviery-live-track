@@ -2,6 +2,14 @@ import jwt from 'jsonwebtoken';
 import blackList from '../models/blackList.js';
 
 export const verifyToken = async (req, res, next) => {
+    // const tokens = req.cookies.token;
+    // if(tokens) {
+    //     return res.status(401).json({ success: false, message: "Invalid Token" });
+    // }
+    // const decoded_tokens = jwt.verify(tokens, process.env.ACCESS_TOKEN_SECRET);
+    // if(decoded_tokens) {
+    //   return res.status(401).json({ success: false, message: "Token not verify" });
+    // }
     const token = (req.body && req.body.token) || req.query.token || req.headers['authorization'];
     if (!token) {
         return res.status(400).json({ success: false, message: "Token required!" });

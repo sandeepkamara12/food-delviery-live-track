@@ -81,13 +81,6 @@ export const updateUserProfileValidation = [
     .isLength({ min: 2 })
     .withMessage("Name must be at least 2 characters long"),
 
-  // check("email")
-  //   .trim()
-  //   .notEmpty()
-  //   .withMessage("Email is required")
-  //   .isEmail()
-  //   .withMessage("Please provide a valid email"),
-
   check("mobile")
     .trim()
     .notEmpty()
@@ -96,21 +89,6 @@ export const updateUserProfileValidation = [
     .withMessage("Please enter a valid mobile number")
     .matches(/^[6-9]\d{9}$/)
     .withMessage("Mobile number must be Indian 10 digits long"),
-
-  // check("password")
-  //   .trim()
-  //   .notEmpty()
-  //   .withMessage("Password is required")
-  //   .isLength({ min: 8 })
-  //   .withMessage("Password must be at least 8 characters long")
-  //   .matches(/[a-z]/)
-  //   .withMessage("Password must contain at least one lowercase letter")
-  //   .matches(/[A-Z]/)
-  //   .withMessage("Password must contain at least one uppercase letter")
-  //   .matches(/\d/)
-  //   .withMessage("Password must contain at least one number")
-  //   .matches(/[!@#$%^&*]/)
-  //   .withMessage("Password must contain at least one special character (!@#$%^&*)")
 ];
 
 export const OTPVerificationValidator = [
@@ -122,4 +100,20 @@ export const OTPVerificationValidator = [
     .trim()
     .notEmpty()
     .withMessage("OTP is required")
+]
+
+export const createEditShopValidator = [
+  check("city")
+    .trim()
+    .notEmpty()
+    .withMessage("City is required"),
+  check("state")
+    .trim()
+    .notEmpty()
+    .withMessage("State is required"),
+  check("owner")
+    .notEmpty()
+    .withMessage("Owner is required")
+    .isMongoId()
+    .withMessage("Owner must be a valid user ID"),
 ]

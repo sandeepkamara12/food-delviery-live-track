@@ -1,13 +1,13 @@
+import cloudinary from "../helpers/cloudinary.js";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../helpers/cloudinary.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "myapp/images", // optional folder name
+    folder: "myapp/", // optional folder name
     allowed_formats: ["jpg", "jpeg", "png", "webp"],
     public_id: (req, file) => Date.now() + "_" + file.originalname,
   },

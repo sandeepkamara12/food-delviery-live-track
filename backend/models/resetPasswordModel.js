@@ -9,6 +9,11 @@ const resetPasswordSchema = mongoose.Schema(
     token: {
       type: String,
       required: true,
+      trim:true
+    },
+    isVerifiedToken:{
+      type:Boolean,
+      default:false
     },
     timestamp:{
       type: Date,

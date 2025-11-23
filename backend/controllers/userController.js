@@ -7,15 +7,16 @@ import path from 'path';
 import { fileURLToPath } from "url";
 
 //Import Models
-// import User from '../models/userModel.js';
-// import ResetPassword from "../models/resetPasswordModel.js";
-// import BlackList from "../models/blackList.js";
+import { User } from '../models/userModel.js';
+import ResetPassword from "../models/resetPasswordModel.js";
+import BlackList from "../models/blackList.js";
 // import OTP from "../models/otp.js";
 
 //Import helpers
 import { deleteImage } from "../helpers/deleteImage.js";
 import { sendMail } from '../helpers/mailer.js';
 import { otpOneMinuteValidation } from '../helpers/otpValidate.js';
+import cloudinary from "../helpers/cloudinary.js";
 
 
 
@@ -35,14 +36,13 @@ const generateRandomOTP = async () => {
 
 export const registerUserController = async (req, res) => {
     try {
-        const { name, email, mobile, password } = req.body;
+        const { name, email, mobile, password, role } = req.body;
         if (!req.file) {
             return res.status(400).json({
                 success: false,
                 message: "Image is required!",
             });
         }
-        let hashedPassword = await bcrypt.hash(password, 10);
 
         let ifUserExist = await User.findOne({ $or: [{ email }, { mobile }] });
         if (ifUserExist) {
@@ -52,28 +52,55 @@ export const registerUserController = async (req, res) => {
             });
         }
 
-        let newUser = new User({ name, email, mobile, is_verified: false, password: hashedPassword, image: `images/${req.file.filename}` });
-        const userData = await newUser.save();
+        let uploadResult;
 
-        //Send verification email
-        const message = `<p>Hii, ${name}, Please <a href='http://localhost:4000/mail-verification?id=${newUser?._id}'>verify</a> your email</p>`;
-        await sendMail(email, 'Email Verification', message);
+        try {
+            uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: "food-delivery" });
+        } catch (cloudErr) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to upload image to Cloudinary",
+                error: cloudErr.message,
+            });
+        }
 
-        const access_token = await generateAccessToken({ user: newUser });
-        const refresh_token = await generateRefreshToken({ user: newUser });
+        const secureImageUrl = uploadResult.secure_url;
+        const publicId = uploadResult.public_id;
 
-        res.cookie("token", access_token, {
-            secure:false,
-            sameSite:"strict",
-            maxAge:7*24*60*60*1000,
-            httpOnly:true
-        })
+        let hashedPassword = await bcrypt.hash(password, 10);
+        try {
+            let newUser = new User({ name, email, mobile, role, provider: "local", is_verified: false, password: hashedPassword, image: secureImageUrl, image_public_id: publicId });
+            const userData = await newUser.save();
+            const access_token = await generateAccessToken({ user: newUser });
+            const refresh_token = await generateRefreshToken({ user: newUser });
 
-        return res.status(201).json({
-            success: true,
-            message: "User register successfully!",
-            user: userData
-        })
+            //Send verification email
+            const message = `<p>Hii, ${name}, Please <a href='http://localhost:8000/mail-verification?id=${newUser?._id}'>verify</a> your email</p>`;
+            await sendMail(email, 'Email Verification', message);
+
+            res.cookie("token", access_token, {
+                secure: true,
+                sameSite: "none",
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                httpOnly: true
+            });
+
+            return res.status(201).json({
+                success: true,
+                message: "User register successfully!",
+                user: userData
+            })
+        } catch (error) {
+            await cloudinary.uploader.destroy(publicId);
+
+            return res.status(500).json({
+                success: false,
+                message: "Failed to create user",
+                error: error.message,
+            });
+        }
+
+
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -82,26 +109,27 @@ export const registerUserController = async (req, res) => {
     }
 }
 
-// export const verifyUserController = async (req, res) => {
-//     try {
-//         if (req.query.id === undefined) {
-//             return res.render('404');
-//         }
-//         const userData = await User.findOne({ _id: req.query.id });
-//         if (userData) {
-//             if (userData.is_verified) {
-//                 return res.render('mail-verification', { message: "Your email already verified!" });
-//             }
-//             await User.findByIdAndUpdate({ _id: req.query.id }, { $set: { is_verified: true } });
-//             return res.render('mail-verification', { message: "Mail has been verified successfully!" });
-//         }
-//         else {
-//             return res.render('mail-verification', { message: "User not found!" });
-//         }
-//     } catch (error) {
-//         return res.render('404');
-//     }
-// }
+export const verifyUserController = async (req, res) => {
+    console.log('hi there!');
+    try {
+        if (req.query.id === undefined) {
+            return res.render('404');
+        }
+        const userData = await User.findOne({ _id: req.query.id });
+        if (userData) {
+            if (userData.is_verified) {
+                return res.render('mail-verification', { message: "Your email already verified!" });
+            }
+            await User.findByIdAndUpdate({ _id: req.query.id }, { $set: { is_verified: true } });
+            return res.render('mail-verification', { message: "Mail has been verified successfully!" });
+        }
+        else {
+            return res.render('mail-verification', { message: "User not found!" });
+        }
+    } catch (error) {
+        return res.render('404');
+    }
+}
 
 // export const sendMailVerificationController = async (req, res) => {
 //     try {
@@ -128,81 +156,113 @@ export const registerUserController = async (req, res) => {
 //     }
 // }
 
-// export const forgotPasswordController = async (req, res) => {
-//     try {
-//         const { email } = req.body;
-//         const ifUserExist = await User.findOne({ email });
-//         if (!ifUserExist) {
-//             return res.status(400).json({ success: false, message: "Email does not exists!" });
-//         }
-//         const random_string = randomString.generate();
-//         const message = `<p>Hii, ${ifUserExist?.name}, Please click <a href='http://localhost:4000/reset-password?token=${random_string}'>here </a> to reset the password, Link will expire within a minute.</p>`;
-//         await ResetPassword.deleteMany({ user_id: ifUserExist?._id });
-//         const updatedPassword = new ResetPassword({
-//             user_id: ifUserExist?._id,
-//             token: random_string
-//         });
-//         await updatedPassword.save();
-//         await sendMail(ifUserExist?.email, 'Reset Password', message);
+export const forgotPasswordController = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const ifUserExist = await User.findOne({ email });
+        if (!ifUserExist) {
+            return res.status(400).json({ success: false, message: "Invalid Email!" });
+        }
+        const random_string = randomString.generate();
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        // const message = `<p>Hii, ${ifUserExist?.name}, Please click <a href='http://localhost:8000/reset-password?token=${random_string}'>here </a> to reset the password, Link will expire within a minute.</p>`;
+        const message = `<p>Hii, ${ifUserExist?.name}, Please enter OTP: ${otp} to reset the password, OTP will expire within a minute.</p>`;
+        await ResetPassword.deleteMany({ user_id: ifUserExist?._id });
+        const updatedPassword = new ResetPassword({
+            user_id: ifUserExist?._id,
+            // token: random_string
+            token: otp
+        });
+        await updatedPassword.save();
+        await sendMail(ifUserExist?.email, 'Reset Password', message);
 
-//         return res.status(201).json({ success: true, message: "Reset Password email sent to your email address" });
-//     } catch (error) {
-//         return res.status(500).json({
-//             success: false,
-//             message: error.message
-//         });
-//     }
-// }
+        return res.status(201).json({ success: true, message: "Reset Password email sent to your email address" });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
 
-// export const resetPasswordController = async (req, res) => {
-//     try {
-//         if (req.query.token === 'undefined') {
-//             return res.render('404');
-//         }
-//         const resetData = await ResetPassword.findOne({ token: req.query.token });
-//         if (!resetData) {
-//             return res.render('404');
-//         }
-//         // Check, either the link expired or not
-//         const sendNextOTP = await otpOneMinuteValidation(resetData.timestamp);
-//         if (sendNextOTP) {
-//             return res.render('reset-password', { resetData, error: "expire" });
-//         }
-//         return res.render('reset-password', { resetData })
-//     }
-//     catch (error) {
-//         return res.status(500).json({
-//             success: false,
-//             message: error.message
-//         });
-//     }
-// }
+export const resetPasswordController = async (req, res) => {
+    try {
 
-// export const updateForgotPasswordController = async (req, res) => {
-//     try {
-//         const { user_id, new_password, confirm_new_password } = req.body;
-//         const resetData = await ResetPassword.findOne({ user_id });
+        const { token, email } = req.body;
 
-//         if (new_password !== confirm_new_password) {
-//             return res.render('reset-password', { resetData, error: "Password does not match!" });
-//         }
+        const ifUserExist = await User.findOne({ email });
+        if (!ifUserExist) {
+            return res.status(400).json({ success: false, status: 0, message: "Email does not exists!" });
+        }
 
-//         let newHashedPassword = await bcrypt.hash(confirm_new_password, 10);
+        const user_id = new mongoose.Types.ObjectId(ifUserExist?._id);
+        const resetOTP = await ResetPassword.findOne({ token, user_id });
 
-//         await User.findByIdAndUpdate({ _id: user_id }, {
-//             $set: {
-//                 password: newHashedPassword
-//             }
-//         });
-//         await ResetPassword.deleteMany({ user_id });
-//         return res.render('success', { message: "Password updated successfully!" });
-//     } catch (error) {
-//         return res.status(500).json({
-//             success: false,
-//             message: error.message
-//         });
-//     }
-// }
+        if (!resetOTP) {
+            return res.status(400).json({ success: false, status: 0, message: "Invalid OTP!" });
+        }
+
+        const sendNextOTP = await otpOneMinuteValidation(resetOTP.timestamp);
+
+        if (sendNextOTP) {
+            return res.status(400).json({ success: false, status: 0, message: "Invalid OTP!" });
+        }
+        await ResetPassword.updateOne(
+            { _id: resetOTP._id },
+            { $set: { isVerifiedToken: true } }
+        );
+
+        return res.status(200).json({ success: true, message: "OTP Verified Successfully!" });
+    }
+    catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+export const updateForgotPasswordController = async (req, res) => {
+    try {
+        const { email, newPassword, confirmPassword } = req.body;
+
+        const ifUserExist = await User.findOne({ email });
+        if (!ifUserExist) {
+            return res.status(400).json({ success: false, status: 0, message: "Invalid Email!" });
+        }
+
+        const user_id = new mongoose.Types.ObjectId(ifUserExist?._id);
+        const resetOTP = await ResetPassword.findOne({ user_id, isVerifiedToken: true });
+
+        if (!resetOTP) {
+            return res.status(400).json({ success: false, status: 0, message: "Invalid OTP!" });
+        }
+
+        const sendNextOTP = await otpOneMinuteValidation(resetOTP.timestamp);
+        if (sendNextOTP) {
+            return res.status(400).json({ success: false, status: 0, message: "Invalid OTP!" });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(404).json({ success: false, status: 0, message: "Password does not match" });
+        }
+
+        let newHashedPassword = await bcrypt.hash(confirmPassword, 10);
+
+        await User.findByIdAndUpdate({ _id: user_id }, {
+            $set: {
+                password: newHashedPassword
+            }
+        });
+        await ResetPassword.deleteMany({ user_id });
+        return res.status(200).json({ success: true, message: "Password updated successfully!" });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
 
 export const loginUserController = async (req, res) => {
     try {
@@ -220,17 +280,23 @@ export const loginUserController = async (req, res) => {
         if (!isUserExist?.is_verified) {
             return res.status(400).json({ success: false, message: "Please verify your account!" });
         }
+        const userObj = isUserExist.toObject();
 
-        const access_token = await generateAccessToken({ user: isUserExist });
-        const refresh_token = await generateRefreshToken({ user: isUserExist });
-         res.cookie("token", access_token, {
-            secure:false,
-            sameSite:"strict",
-            maxAge:7*24*60*60*1000,
-            httpOnly:true
+        delete userObj.password;
+        delete userObj.is_verified;
+        delete userObj.image_public_id;
+        delete userObj.provider;
+
+        const access_token = await generateAccessToken({ user: userObj });
+        const refresh_token = await generateRefreshToken({ user: userObj });
+
+        res.cookie("token", access_token, {
+            secure: false,
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true
         });
-        return res.status(200).json({ success: true, message: "Login Successfully!", access_token, refresh_token, token_type: "Bearer" });
-
+        return res.status(200).json({ success: true, message: "Login Successfully!", user:userObj, access_token, refresh_token, token_type: "Bearer" });
 
     } catch (error) {
         return res.status(500).json({
@@ -240,16 +306,21 @@ export const loginUserController = async (req, res) => {
     }
 }
 
-// export const userProfileController = async (req, res) => {
-//     try {
-//         return res.status(200).json({ success: true, message: "Fetched current user information!", user: req.user });
-//     } catch (error) {
-//         return res.status(500).json({
-//             success: false,
-//             message: error.message
-//         });
-//     }
-// }
+export const userProfileController = async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(400).json({ success: false, message: "User not found!" });
+        }
+        return res.status(200).json({ success: true, message: "Fetched current user information!", user: user });
+    } catch (error) {
+        console.log(error, 'hi error');
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
 
 // export const userUpdateProfileController = async (req, res) => {
 //     try {
@@ -433,3 +504,35 @@ export const logoutController = async (req, res) => {
 //         });
 //     }
 // }
+
+export const googleAuth = async (req, res) => {
+    try {
+        const { name, email, is_verified, mobile, image, role } = req.body;
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = await User.create({
+                name, email, is_verified, mobile, image, role, provider: "google",
+            })
+        }
+        const access_token = await generateAccessToken({ user });
+        const refresh_token = await generateRefreshToken({ user: user });
+
+        res.cookie("token", access_token, {
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "User register successfully!",
+            user: user
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}

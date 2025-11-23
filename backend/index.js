@@ -1,11 +1,13 @@
-import express from 'express';
 import { configDotenv } from 'dotenv';
+configDotenv();
+import express from 'express';
 import cors from 'cors';
 import dbconfig from './db/dbconfig.js';
 import userRouter from './routes/userRoute.js';
 import authRouter from './routes/authRoute.js';
 import cookieParser from 'cookie-parser';
-configDotenv();
+import shopRouter from './routes/shopRoute.js';
+import itemRouter from './routes/itemRoute.js';
 
 const app = express();
 const PORT = process.env.PORT;
@@ -32,6 +34,8 @@ app.get("/", (req, res) => {
 });
 app.use('/api', userRouter);
 app.use('/', authRouter);
+app.use('/api/shop', shopRouter);
+app.use('/api/item', itemRouter);
 
 app.listen(PORT,()=>{
     console.log(`Server is running on port: ${PORT}`)
