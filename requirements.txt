@@ -1,0 +1,3 @@
+Need to make dynamic path for email verification in register user controller.
+Mail verification while register user, path should be frontend instead of backend.
+While mail verification there should be a token in url instead of user id in encrypted format.
