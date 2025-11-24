@@ -10,6 +10,8 @@ import useGetCity from './hooks/useGetCity';
 import OwnerDashboard from './pages/OwnerDashboard';
 import CreateEditShop from './pages/CreateEditShop';
 import CreateItem from './pages/CreateItem';
+import EditItem from './pages/EditItem';
+import { ShopProvider } from './providers/ShopProvider';
 
 // import Users from './components/user/Users';
 // import Login from './components/common/Login';
@@ -42,7 +44,7 @@ function App() {
 useGetCity();
   return (
     <>
-      <ToastContainer position="top-right" />
+      <ToastContainer position="top-right" /> 
       <Suspense fallback={<Loader />}>
       <Routes>
         {/* Routes, those both users and admin can access */}
@@ -52,20 +54,25 @@ useGetCity();
             {/* <Route path="/template" element={<Template />} /> */}
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-forgot-password-otp" element={<VerifyForgotPasswordOtp />} />
+            <Route path="/reset-forgot-password" element={<ResetPassword />} />
+            <Route path="/mail-verification" element={<MailVerification />} />
           </Route>
         </Route>
         <Route element={<PrivateRoute />}>
           <Route element={<SidebarLayout />}>
             <Route path="/users" element={<Users />} />
+          </Route>
+        </Route>
+        <Route element={<ShopProvider><PrivateRoute /></ShopProvider>}>
+          <Route element={<SidebarLayout />}>
             <Route path="/owner" element={<OwnerDashboard />} />
             <Route path="/create-shop" element={<CreateEditShop />} />
             <Route path="/create-item" element={<CreateItem />} />
+            <Route path="/edit-item/:itemId" element={<EditItem />} />
             <Route path="/hola" element={<Hola />} />
           </Route>
         </Route>
-        <Route path="/verify-forgot-password-otp" element={<VerifyForgotPasswordOtp />} />
-        <Route path="/reset-forgot-password" element={<ResetPassword />} />
-        <Route path="/mail-verification" element={<MailVerification />} />
       </Routes>
       </Suspense>
     </>

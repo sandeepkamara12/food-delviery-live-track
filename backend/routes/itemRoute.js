@@ -2,7 +2,9 @@ import express from "express";
 import {
     addItemController,
     editItemController,
-    getShopItemsController
+    getItemByIdController,
+    getShopItemsController,
+    deleteItemController,
 } from "../controllers/itemController.js";
 import {
   uploadSingleImage,
@@ -20,4 +22,6 @@ itemRouter.use(express.json());
 itemRouter.post("/create-item", verifyToken, uploadSingleImage("image"), addItemController);
 itemRouter.post("/get-shop-items", verifyToken, getShopItemsController);
 itemRouter.post("/edit-item/:itemId", verifyToken, uploadSingleImage("image"), editItemController);
+itemRouter.get("/get-item-by-id/:itemId", verifyToken, getItemByIdController);
+itemRouter.get("/delete-item-by-id/:itemId", verifyToken, deleteItemController);
 export default itemRouter;

@@ -53,7 +53,6 @@ useEffect(()=>{
   });
   return (
     <div className="max-w-xl w-full mx-auto bg-white border border-gray-200 rounded-xl shadow-2xs">
-      {console.log(formik.errors, 'formik')}
       <div className="p-4 sm:p-7">
         <div className="text-center">
           <h1 className="block text-2xl font-bold text-gray-800 dark:text-white">Forgot password?</h1>

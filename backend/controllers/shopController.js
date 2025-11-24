@@ -20,7 +20,10 @@ export const shopController = async (req, res) => {
                 name, city, state, address, image: image || shop.image, owner
             }, {new:true});
         }
-        await shop.populate("owner items");
+        await shop.populate("owner").populate({
+            path:"items",
+            options:{sort:{updatedAt:-1}}
+        });
         return res.status(200).json({
             success:true, message:"Shop created", shop
         })
@@ -33,7 +36,10 @@ export const shopController = async (req, res) => {
 }
 export const getShopController = async (req, res) => {
     try {
-        const shop = await Shop.findOne({owner:req.user?._id}).populate("owner items");
+        const shop = await Shop.findOne({owner:req.user?._id}).populate("owner").populate({
+            path:"items",
+            options:{sort:{updatedAt:-1}}
+        });;
         if(!shop) {
             return res.status(400).json({
                 success:false, message:"Shop not found!"

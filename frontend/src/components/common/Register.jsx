@@ -14,7 +14,6 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { Bike, UserRound, UserRoundCog } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from '../../../firebase.js'
-import axios from 'axios';
 const Register = () => {
     const { loading } = useAuth();
     const fileInputRef = useRef(null);
@@ -26,7 +25,6 @@ const Register = () => {
         }
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
-        console.log(result?.user, 'result is');
 
         const output = await googleRegister(result?.user);
         if (output?.success) {

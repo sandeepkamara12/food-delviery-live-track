@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { ConciergeBell, Plus, Receipt, ShoppingCart } from 'lucide-react';
 import { useToggle } from '../../hooks/useToggle';
 import useGetCity from '../../hooks/useGetCity';
-// import { useAuthContext } from '../../context/AuthContext';
 
 const Header = ({ toggleSidebar, setToggleSidebar }) => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -115,8 +114,8 @@ const Header = ({ toggleSidebar, setToggleSidebar }) => {
 
                   <div className={`${toggle ? 'opacity-100 block ' : 'opacity-0 hidden'} absolute right-0 top-10 transition-[opacity,margin] duration  min-w-60 bg-white shadow-md rounded-lg mt-2 dark:bg-neutral-800 dark:border dark:border-neutral-700 dark:divide-neutral-700 after:h-4 after:absolute after:-bottom-4 after:start-0 after:w-full before:h-4 before:absolute before:-top-4 before:start-0 before:w-full" role="menu" aria-orientation="vertical" aria-labelledby="hs-dropdown-account`}>
                     <div className="py-3 px-5 bg-gray-100 rounded-t-lg dark:bg-neutral-700">
-                      <p className="text-sm text-gray-500 dark:text-neutral-500">Signed in as</p>
-                      <p className="text-sm font-medium text-gray-800 dark:text-neutral-200">james@site.com</p>
+                      <p className="text-sm text-gray-500 dark:text-neutral-500">Signed in as: <span className='capitalize'>{user?.role}</span></p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-neutral-200">{user?.email}</p>
                     </div>
                     <div className="p-1.5 space-y-0.5">
                       <a className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700 dark:focus:text-neutral-300" href="#">
@@ -146,10 +145,10 @@ const Header = ({ toggleSidebar, setToggleSidebar }) => {
       <div className="items-center py-2 justify-between hidden">
 
         <div className='flex items-center'>
-          <button type="button" onClick={() => setToggleSidebar(!toggleSidebar)} className="size-8 flex justify-center items-center gap-x-2 border border-gray-200 text-gray-800 hover:text-gray-500 rounded-lg focus:outline-hidden focus:text-gray-500 disabled:opacity-50 disabled:pointer-events-none dark:border-neutral-700 dark:text-neutral-200 dark:hover:text-neutral-500 dark:focus:text-neutral-500" aria-haspopup="dialog" aria-expanded="false" aria-controls="hs-application-sidebar" aria-label="Toggle navigation" data-hs-overlay="#hs-application-sidebar">
+          {/* <button type="button" onClick={() => setToggleSidebar(!toggleSidebar)} className="size-8 flex justify-center items-center gap-x-2 border border-gray-200 text-gray-800 hover:text-gray-500 rounded-lg focus:outline-hidden focus:text-gray-500 disabled:opacity-50 disabled:pointer-events-none dark:border-neutral-700 dark:text-neutral-200 dark:hover:text-neutral-500 dark:focus:text-neutral-500" aria-haspopup="dialog" aria-expanded="false" aria-controls="hs-application-sidebar" aria-label="Toggle navigation" data-hs-overlay="#hs-application-sidebar">
             <span className="sr-only">Toggle Navigation</span>
             <svg className="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /><path d="m8 9 3 3-3 3" /></svg>
-          </button>
+          </button> */}
 
           <ol className="ms-3 flex items-center whitespace-nowrap">
             <li className="flex items-center text-sm text-gray-800 dark:text-neutral-400">

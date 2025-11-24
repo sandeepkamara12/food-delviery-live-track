@@ -1,19 +1,30 @@
 import { ArrowLeft, Trash } from 'lucide-react'
 import React, { useState } from 'react'
-import useShop from '../hooks/useShop';
 import { useFormik } from 'formik';
 import useGetCity from '../hooks/useGetCity';
 // import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useEffect } from 'react';
+import { useShop } from '../hooks/useShop';
 
 const CreateEditShop = () => {
-    const { shop, createShop } = useShop();
-    const { user } = useAuth();
-    const { city, state, address } = useGetCity();
     const navigate = useNavigate();
-    const [shopImage, setShopImage] = useState(null);
+    
+    const [imagePreview, setImagePreview] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
+
+    const { shop, createShop } = useShop();
+    const { city, state, address } = useGetCity();
+    const { user } = useAuth();
+    
+
+    useEffect(() => {
+        setImagePreview(shop?.image); // Cloudinary URL
+        setImageFile(null); // clear old file
+    }, [shop]);
+
 
     const formik = useFormik({
         initialValues: {
@@ -21,7 +32,7 @@ const CreateEditShop = () => {
             city: shop?.city ? shop?.city : city,
             state: shop?.state ? shop?.state : state,
             address: shop?.address ? shop?.address : address,
-            image: shop?.image ? shop?.image : null
+            image: null
         },
         enableReinitialize: true,
         onSubmit: async values => {
@@ -30,9 +41,14 @@ const CreateEditShop = () => {
             formData.append('name', values.name);
             formData.append('city', values.city);
             formData.append('state', values.state);
-            formData.append('address', values.address);
-            formData.append('image', values.image);
             formData.append('owner', user?._id);
+            formData.append('address', values.address);
+            // formData.append('image', values.image);
+
+            if (imageFile) {
+                formData.append("image", imageFile);
+            }
+
 
             const result = await createShop(formData);
             if (result?.success) {
@@ -44,11 +60,13 @@ const CreateEditShop = () => {
             }
         }
     });
-    const handleShopImage = (file) => {
+  const handleShopImage = (file) => {
         if (!file) return;
-        formik.setFieldValue('image', file);
-        setShopImage(URL.createObjectURL(file))
-    }
+
+        setImageFile(file); // store actual file
+        setImagePreview(URL.createObjectURL(file)); // store preview
+        formik.setFieldValue("image", file); // important
+    };
     return (
         <div>
             <ArrowLeft onClick={() => navigate('/owner')} />
@@ -62,9 +80,9 @@ const CreateEditShop = () => {
                     <div className="bg-white rounded-xl shadow-xs dark:bg-neutral-900">
                         <div className={`relative h-40 rounded-xl overflow-hidden`}>
                             {
-                                shopImage ?
+                                imagePreview ?
                                     <>
-                                        <img src={shopImage} alt="" className='h-full w-full object-cover object-center rounded-xl' />
+                                        <img src={imagePreview} alt="" className='h-full w-full object-cover object-center rounded-xl' />
                                         <div className="absolute top-0 end-0 p-4">
                                             <button type="button" className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg text-gray-800 hover:text-red-500 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700">
                                                 <Trash className='shrink-0 size-4' />
@@ -130,34 +148,11 @@ const CreateEditShop = () => {
                                         </span>
                                     </label>
                                 </div>
-
-                                {/* <div className="space-y-2">
-                                    <label htmlFor="af-submit-app-category" className="inline-block text-sm font-medium text-gray-800 mt-2.5 dark:text-neutral-200">
-                                        Category
-                                    </label>
-
-                                    <select id="af-submit-app-category" className="py-1.5 sm:py-2 px-3 pe-9 block w-full border-gray-200 shadow-2xs rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600">
-                                        <option selected>Select a category</option>
-                                        <option>Ecommerce</option>
-                                        <option>Finance</option>
-                                        <option>Marketplace</option>
-                                        <option>Social</option>
-                                        <option>Others</option>
-                                    </select>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label htmlFor="af-submit-app-description" className="inline-block text-sm font-medium text-gray-800 mt-2.5 dark:text-neutral-200">
-                                        Description
-                                    </label>
-
-                                    <textarea id="af-submit-app-description" className="py-1.5 sm:py-2 px-3 block w-full border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" rows="6" placeholder="A detailed summary will better explain your products to the audiences. Our users will see this in your dedicated product page."></textarea>
-                                </div> */}
                             </div>
 
                             <div className="mt-5 flex justify-center gap-x-2">
                                 <button type="submit" className="w-full py-3 px-4 inline-flex items-center justify-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
-                                    Create Shop
+                                    {shop ? 'Update' : 'Create'} Shop
                                 </button>
                             </div>
                         </div>

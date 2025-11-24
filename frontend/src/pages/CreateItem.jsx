@@ -1,10 +1,10 @@
 import { ArrowLeft, Trash } from 'lucide-react'
 import React, { useState } from 'react'
-import useShop from '../hooks/useShop';
 import { useFormik } from 'formik';
 // import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { useShop } from '../hooks/useShop';
 
 const CreateItem = () => {
     const { createItem } = useShop();
@@ -41,6 +41,8 @@ const CreateItem = () => {
             if (result?.success) {
                 toast.success(result?.message);
                 formik.resetForm();
+                setShopImage(null);
+                navigate('/owner');
             }
             else {
                 toast.error(result?.message);
@@ -99,7 +101,8 @@ const CreateItem = () => {
                                         Category
                                     </label>
 
-                                    <select id="af-submit-app-category" value={formik.values.category} onChange={formik.handleChange} onBlur={formik.handleBlur} name="category" className="py-1.5 sm:py-2 px-3 pe-9 block w-full border border-gray-200 shadow-2xs rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600">
+                                    <select name="category" id="af-submit-app-category" value={formik.values.category} onChange={formik.handleChange} onBlur={formik.handleBlur} className="py-1.5 sm:py-2 px-3 pe-9 block w-full border border-gray-200 shadow-2xs rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600">
+                                         <option value="">Select Category</option>
                                         {
                                             categories?.length > 0 && categories?.map((category, index) => {
                                                 return (<option value={category} key={index}>{category}</option>)
