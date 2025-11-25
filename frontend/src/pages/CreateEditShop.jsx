@@ -1,30 +1,31 @@
-import { ArrowLeft, Trash } from 'lucide-react'
-import React, { useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
 import { useFormik } from 'formik';
 import useGetCity from '../hooks/useGetCity';
-// import * as yup from 'yup';
+import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useEffect } from 'react';
 import { useShop } from '../hooks/useShop';
+import Spinner from '../components/common/Spinner';
 
 const CreateEditShop = () => {
     const navigate = useNavigate();
-    
+
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
 
-    const { shop, createShop } = useShop();
+    const { shop, createUpdateShop } = useShop();
     const { city, state, address } = useGetCity();
     const { user } = useAuth();
-    
 
     useEffect(() => {
-        setImagePreview(shop?.image); // Cloudinary URL
-        setImageFile(null); // clear old file
+        if (shop?.image) {
+            setImagePreview(shop?.image); // Cloudinary URL
+            setImageFile(null); // clear old file
+        }
     }, [shop]);
-
 
     const formik = useFormik({
         initialValues: {
@@ -34,39 +35,48 @@ const CreateEditShop = () => {
             address: shop?.address ? shop?.address : address,
             image: null
         },
+        validationSchema: yup.object({
+            name: yup.string().required("Name is required"),
+            city: yup.string().required("City is required"),
+            state: yup.string().required("State is required"),
+            address: yup.string().required("Address is required"),
+        }),
         enableReinitialize: true,
         onSubmit: async values => {
-            console.log(values);
             const formData = new FormData();
             formData.append('name', values.name);
             formData.append('city', values.city);
             formData.append('state', values.state);
             formData.append('owner', user?._id);
             formData.append('address', values.address);
-            // formData.append('image', values.image);
 
             if (imageFile) {
                 formData.append("image", imageFile);
             }
 
-
-            const result = await createShop(formData);
+            const result = await createUpdateShop(formData);
             if (result?.success) {
                 toast.success(result?.message);
                 formik.resetForm();
+                navigate('/owner');
             }
             else {
                 toast.error(result?.message);
             }
         }
     });
-  const handleShopImage = (file) => {
+    const handleShopImage = (file) => {
         if (!file) return;
-
         setImageFile(file); // store actual file
         setImagePreview(URL.createObjectURL(file)); // store preview
         formik.setFieldValue("image", file); // important
     };
+
+    const isDisabled = (!formik.isValid && formik.submitCount > 0) || formik.isSubmitting;
+    const buttonText = shop ? 'Update Shop' : 'Create Shop';
+
+    console.log(formik, 'fomrik');
+
     return (
         <div>
             <ArrowLeft onClick={() => navigate('/owner')} />
@@ -83,11 +93,6 @@ const CreateEditShop = () => {
                                 imagePreview ?
                                     <>
                                         <img src={imagePreview} alt="" className='h-full w-full object-cover object-center rounded-xl' />
-                                        <div className="absolute top-0 end-0 p-4">
-                                            <button type="button" className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg text-gray-800 hover:text-red-500 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700">
-                                                <Trash className='shrink-0 size-4' />
-                                            </button>
-                                        </div>
                                     </>
                                     :
                                     <img src="https://preline.co/assets/svg/examples/abstract-bg-1.svg" alt="" className='h-full w-full object-cover object-center rounded-xl' />
@@ -103,6 +108,10 @@ const CreateEditShop = () => {
                                     </label>
 
                                     <input name="name" value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} id="af-submit-app-shop-name" type="text" className="py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 shadow-2xs rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" placeholder="Enter shop name" />
+                                    {
+                                        formik.touched.name && formik.errors.name &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-name-error-helper">{formik.errors.name}</p>
+                                    }
                                 </div>
 
                                 <div className="space-y-2">
@@ -111,6 +120,10 @@ const CreateEditShop = () => {
                                     </label>
 
                                     <input name="city" value={formik.values.city} onChange={formik.handleChange} onBlur={formik.handleBlur} id="city" type="text" className="py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 shadow-2xs sm:text-sm rounded-lg focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" placeholder="Enter city" />
+                                    {
+                                        formik.touched.city && formik.errors.city &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-city-error-helper">{formik.errors.city}</p>
+                                    }
                                 </div>
 
                                 <div className="space-y-2">
@@ -119,6 +132,10 @@ const CreateEditShop = () => {
                                     </label>
 
                                     <input name="state" value={formik.values.state} onChange={formik.handleChange} onBlur={formik.handleBlur} id="state" type="text" className="py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 shadow-2xs sm:text-sm rounded-lg focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" placeholder="Enter state" />
+                                    {
+                                        formik.touched.state && formik.errors.state &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-state-error-helper">{formik.errors.state}</p>
+                                    }
                                 </div>
 
                                 <div className="space-y-2">
@@ -127,6 +144,10 @@ const CreateEditShop = () => {
                                     </label>
 
                                     <input name="address" value={formik.values.address} onChange={formik.handleChange} onBlur={formik.handleBlur} id="address" type="text" className="py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 shadow-2xs sm:text-sm rounded-lg focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" placeholder="Enter shop address" />
+                                    {
+                                        formik.touched.address && formik.errors.address &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-address-error-helper">{formik.errors.address}</p>
+                                    }
                                 </div>
 
                                 <div className="space-y-2">
@@ -149,10 +170,9 @@ const CreateEditShop = () => {
                                     </label>
                                 </div>
                             </div>
-
                             <div className="mt-5 flex justify-center gap-x-2">
-                                <button type="submit" className="w-full py-3 px-4 inline-flex items-center justify-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
-                                    {shop ? 'Update' : 'Create'} Shop
+                                <button disabled={isDisabled} type="submit" className="w-full py-3 px-4 inline-flex items-center justify-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
+                                    {formik.isSubmitting ? <Spinner type="inner" /> : buttonText}
                                 </button>
                             </div>
                         </div>

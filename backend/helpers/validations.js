@@ -103,6 +103,10 @@ export const OTPVerificationValidator = [
 ]
 
 export const createEditShopValidator = [
+  check("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Name is required"),
   check("city")
     .trim()
     .notEmpty()
@@ -111,6 +115,10 @@ export const createEditShopValidator = [
     .trim()
     .notEmpty()
     .withMessage("State is required"),
+  check("address")
+    .trim()
+    .notEmpty()
+    .withMessage("Address is required"),
   check("owner")
     .notEmpty()
     .withMessage("Owner is required")

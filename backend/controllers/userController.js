@@ -509,11 +509,24 @@ export const googleAuth = async (req, res) => {
     try {
         const { name, email, is_verified, mobile, image, role } = req.body;
         let user = await User.findOne({ email });
+        let isNewUser = false;
         if (!user) {
             user = await User.create({
                 name, email, is_verified, mobile, image, role, provider: "google",
-            })
+            });
+            isNewUser = true;
         }
+        else {
+            let updated = false;
+            if (!user.image && image) {
+                user.image = image;
+                updated = true;
+            }
+            if (updated) {
+                await user.save();
+            }
+        }
+        console.log(user, 'google user token');
         const access_token = await generateAccessToken({ user });
         const refresh_token = await generateRefreshToken({ user: user });
 
@@ -524,10 +537,14 @@ export const googleAuth = async (req, res) => {
             httpOnly: true
         });
 
-        return res.status(201).json({
+        return res.status(isNewUser ? 201 : 200).json({
             success: true,
-            message: "User register successfully!",
-            user: user
+            message: isNewUser
+                ? "User registered successfully!"
+                : "Login successful!",
+            isNewUser,
+            user,
+            access_token, refresh_token, token_type: "Bearer" 
         })
     } catch (error) {
         return res.status(500).json({

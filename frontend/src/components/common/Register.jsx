@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import Text from '../ui/Text';
@@ -14,8 +14,12 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { Bike, UserRound, UserRoundCog } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from '../../../firebase.js'
+import { useLocalStorage } from '../../hooks/useLocalStorage.js';
 const Register = () => {
     const { loading } = useAuth();
+    const navigate = useNavigate();
+      const [accessToken, setAccessToken] = useLocalStorage("access_token", null);
+  const [refreshToken, setRefreshToken] = useLocalStorage("refresh_token", null);
     const fileInputRef = useRef(null);
 
 
@@ -27,11 +31,18 @@ const Register = () => {
         const result = await signInWithPopup(auth, provider);
 
         const output = await googleRegister(result?.user);
+        console.log(output, 'google register output');
         if (output?.success) {
             toast.success(output?.message);
+            setAccessToken(output.access_token);
+            setRefreshToken(output.refresh_token);
+            //  setUser(output?.data?.user);
+            navigate(output.user.role === "owner" ? "/owner" : "/users");
         }
         else {
             toast.error(output?.message);
+            setAccessToken(null);
+            setRefreshToken(null);
         }
     }
 

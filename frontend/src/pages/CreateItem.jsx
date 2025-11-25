@@ -1,10 +1,11 @@
 import { ArrowLeft, Trash } from 'lucide-react'
 import React, { useState } from 'react'
 import { useFormik } from 'formik';
-// import * as yup from 'yup';
+import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { useShop } from '../hooks/useShop';
+import Spinner from '../components/common/Spinner';
 
 const CreateItem = () => {
     const { createItem } = useShop();
@@ -26,16 +27,21 @@ const CreateItem = () => {
             food_type: '',
             image: null
         },
-        enableReinitialize: true,
+        validationSchema: yup.object({
+            name: yup.string().required("Item name is required"),
+            category: yup.string().oneOf(categories, "Invalid category").required("Category is required"),
+            price: yup.number().typeError("Price must be a number").min(0, "Price must be at least 0").required("Price is required"),
+            food_type: yup.string().oneOf(types, "Invalid food type").required("Food type is required"),
+            image: yup.mixed().required("Item image is required")
+        }),
+        // enableReinitialize: true,
         onSubmit: async values => {
-            console.log(values);
             const formData = new FormData();
             formData.append('name', values.name);
             formData.append('category', values.category);
             formData.append('price', values.price);
             formData.append('food_type', values.food_type);
             formData.append('image', values.image);
-            // formData.append('shop',shop?._id);
 
             const result = await createItem(formData);
             if (result?.success) {
@@ -54,6 +60,7 @@ const CreateItem = () => {
         formik.setFieldValue('image', file);
         setShopImage(URL.createObjectURL(file))
     }
+    const isDisabled = (!formik.isValid && formik.submitCount > 0) || formik.isSubmitting;
     return (
         <div>
             <ArrowLeft onClick={() => navigate('/owner')} />
@@ -86,6 +93,10 @@ const CreateItem = () => {
                                     </label>
 
                                     <input name="name" value={formik.values.name} onChange={formik.handleChange} onBlur={formik.handleBlur} id="af-submit-app-shop-name" type="text" className="py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 shadow-2xs rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" placeholder="Enter shop name" />
+                                    {
+                                        formik.touched.name && formik.errors.name &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-name-error-helper">{formik.errors.name}</p>
+                                    }
                                 </div>
 
                                 <div className="space-y-2">
@@ -94,6 +105,10 @@ const CreateItem = () => {
                                     </label>
 
                                     <input name="price" value={formik.values.price} onChange={formik.handleChange} onBlur={formik.handleBlur} id="af-submit-app-shop-price" type="text" className="py-1.5 sm:py-2 px-3 pe-11 block w-full border border-gray-200 shadow-2xs rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" placeholder="Enter item price" />
+                                    {
+                                        formik.touched.price && formik.errors.price &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-price-error-helper">{formik.errors.price}</p>
+                                    }
                                 </div>
 
                                 <div className="space-y-2">
@@ -102,13 +117,17 @@ const CreateItem = () => {
                                     </label>
 
                                     <select name="category" id="af-submit-app-category" value={formik.values.category} onChange={formik.handleChange} onBlur={formik.handleBlur} className="py-1.5 sm:py-2 px-3 pe-9 block w-full border border-gray-200 shadow-2xs rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600">
-                                         <option value="">Select Category</option>
+                                        <option value="">Select Category</option>
                                         {
                                             categories?.length > 0 && categories?.map((category, index) => {
                                                 return (<option value={category} key={index}>{category}</option>)
                                             })
                                         }
                                     </select>
+                                    {
+                                        formik.touched.category && formik.errors.category &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-category-error-helper">{formik.errors.category}</p>
+                                    }
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="food_type" className="inline-block text-sm font-medium text-gray-800 mt-2.5 dark:text-neutral-200">
@@ -126,6 +145,10 @@ const CreateItem = () => {
                                             })
                                         }
                                     </select>
+                                    {
+                                        formik.touched.food_type && formik.errors.food_type &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-food_type-error-helper">{formik.errors.food_type}</p>
+                                    }
                                 </div>
 
                                 <div className="space-y-2">
@@ -146,14 +169,18 @@ const CreateItem = () => {
                                             Maximum file size is 2 MB
                                         </span>
                                     </label>
+                                      {
+                                        formik.touched.image && formik.errors.image &&
+                                        <p class="text-sm text-red-600 mt-2" id="hs-validation-image-error-helper">{formik.errors.image}</p>
+                                    }
                                 </div>
 
 
                             </div>
 
                             <div className="mt-5 flex justify-center gap-x-2">
-                                <button type="submit" className="w-full py-3 px-4 inline-flex items-center justify-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
-                                    Create Item
+                                <button disabled={isDisabled} type="submit" className="w-full py-3 px-4 inline-flex items-center justify-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
+                                    {formik.isSubmitting ? <Spinner type="inner" /> : "Create Item"}
                                 </button>
                             </div>
                         </div>

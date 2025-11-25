@@ -2,10 +2,26 @@ import { useNavigate } from 'react-router-dom';
 import { ChefHat, Hamburger, Pencil } from 'lucide-react';
 import ItemCard from '../components/items/ItemCard';
 import { useShop } from '../hooks/useShop';
+import { useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 const OwnerDashboard = () => {
-  const { shop } = useShop();
+  const { user } = useAuth();
+  const { shop, items, getShop, getShopItems } = useShop();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?._id) {
+      getShop();
+    }
+  }, [user?._id]);
+
+  useEffect(() => {
+    if(shop?._id) {
+      getShopItems(shop?._id);
+    }
+  }, [shop?._id])
+
   return (
     <>
       {
@@ -35,6 +51,16 @@ const OwnerDashboard = () => {
                     <p className="mt-3 text-gray-500 dark:text-neutral-500">
                       A software that develops products for software developers and developments.
                     </p>
+                    <div className="mt-4 flex items-center gap-4">
+                      <figure className="w-20 h-20 rounded-full overflow-hidden">
+                        <img src={shop?.owner?.image} alt={shop?.owner?.name} width="100" height="100" className='object-cover ' />
+                      </figure>
+                      <p className="mt-3 text-gray-500 dark:text-neutral-500">
+                        {shop?.owner?.name}<br />
+                        {shop?.owner?.email}<br />
+                        {shop?.owner?.mobile}
+                      </p>
+                    </div>
                   </div>
                   <div className="mt-auto flex border-t border-gray-200 divide-x divide-gray-200 dark:border-neutral-700 dark:divide-neutral-700">
                     <a className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-es-xl bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800" href="#">
@@ -47,8 +73,9 @@ const OwnerDashboard = () => {
                 </div>
               </div>
             </div>
+            {console.log(items, 'baby')}
             {
-              shop?.items?.length === 0 &&
+              items && items?.length === 0 &&
               <div className="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="group col-start-2 col-end-4 flex flex-col h-full bg-white border border-gray-200 shadow-2xs rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
@@ -73,7 +100,7 @@ const OwnerDashboard = () => {
             <div className="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {
-                  shop?.items?.length > 0 && shop?.items?.map((item, index) => {
+                  items?.length > 0 && items?.map((item, index) => {
                     return (
                       <ItemCard key={index} item={item} />
                     )

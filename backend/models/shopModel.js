@@ -26,10 +26,10 @@ const shopSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    items:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Items'
-    }]
+    // items:[{
+    //     type:mongoose.Schema.Types.ObjectId,
+    //     ref:'Items'
+    // }]
 },{timestamps:true});
 
 const Shop = mongoose.model("Shop", shopSchema);

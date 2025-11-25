@@ -43,6 +43,7 @@ export const googleRegister = async (data) => {
     }
     try {
         const response = await axios.post(`${import.meta.env.VITE_BA_URL}/api/google-auth`, user);
+        console.log(response, 'google response');
         return response.data;
     } catch (error) {
         return error.response.data;

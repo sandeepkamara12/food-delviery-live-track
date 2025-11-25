@@ -2,14 +2,24 @@ import { Pencil, Trash2 } from 'lucide-react'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useShop } from '../../hooks/useShop';
+import { toast } from 'react-toastify';
 
-const ItemCard = ({item}) => {
+const ItemCard = ({ item }) => {
   const navigate = useNavigate();
-  const { deleteItemById } = useShop();
+  const { deleteItemById, getShopItems, shop } = useShop();
+
+  const handleDelete = async (itemId) => {
+    let result = await deleteItemById(itemId);
+    if (result?.success) {
+      toast.success(result?.message);
+      getShopItems(shop?._id);
+    }
+  }
+
   return (
     <div className="group flex flex-col h-full bg-white border border-gray-200 shadow-2xs rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
       <div className="h-52 flex flex-col justify-center items-center rounded-t-xl overflow-hidden">
-       <img src={item?.image} alt="" />
+        <img src={item?.image} alt="" />
       </div>
       <div className="p-4 md:p-6">
         <span className="block mb-1 text-xs font-semibold uppercase text-blue-600 dark:text-blue-500">
@@ -29,10 +39,10 @@ const ItemCard = ({item}) => {
         <a className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-es-xl bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800" href="#">
           ${item?.price}
         </a>
-        <a className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-ee-xl bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800" href="#">
-          <Trash2 onClick={()=>deleteItemById(item?._id)} />
-          <Pencil onClick={()=>navigate(`/edit-item/${item?._id}`)} />
-        </a>
+        <div className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-ee-xl bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800">
+          <Trash2 onClick={() => handleDelete(item?._id)} />
+          <Pencil onClick={() => navigate(`/edit-item/${item?._id}`)} />
+        </div>
       </div>
     </div>
   )

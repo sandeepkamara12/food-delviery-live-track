@@ -1,11 +1,12 @@
 import React from 'react'
 import { useAuth } from '../../hooks/useAuth'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ConciergeBell, Plus, Receipt, ShoppingCart } from 'lucide-react';
 import { useToggle } from '../../hooks/useToggle';
 import useGetCity from '../../hooks/useGetCity';
 
 const Header = ({ toggleSidebar, setToggleSidebar }) => {
+  const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const { toggle, setToggle } = useToggle();
   const { city } = useGetCity();
@@ -83,7 +84,7 @@ const Header = ({ toggleSidebar, setToggleSidebar }) => {
             {
               user?.role === 'owner' ?
                 <>
-                  <button type="button" className="size-9 relative inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full border border-transparent text-gray-800 hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700">
+                  <button type="button" onClick={()=>navigate('/create-item')} className="size-9 relative inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full border border-transparent text-gray-800 hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700">
                     <Plus className="shrink-0 size-4" />
                     <span className="sr-only">Add Food</span>
                   </button>
