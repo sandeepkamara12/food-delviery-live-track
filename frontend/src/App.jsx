@@ -42,13 +42,9 @@ useGetCity();
             <Route path="/mail-verification" element={<MailVerification />} />
           </Route>
         </Route>
-        <Route element={<PrivateRoute />}>
-          <Route element={<SidebarLayout />}>
-            <Route path="/users" element={<Users />} />
-          </Route>
-        </Route>
         <Route element={<ShopProvider><PrivateRoute /></ShopProvider>}>
           <Route element={<SidebarLayout />}>
+            <Route path="/users" element={<Users />} />
             <Route path="/owner" element={<OwnerDashboard />} />
             <Route path="/create-shop" element={<CreateEditShop />} />
             <Route path="/create-item" element={<CreateItem />} />

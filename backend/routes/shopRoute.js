@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getShopBycity,
   getShopController,
     shopController
 } from "../controllers/shopController.js";
@@ -18,4 +19,5 @@ shopRouter.use(express.json());
 
 shopRouter.post("/create-update-shop", verifyToken, uploadSingleImage("image"), createEditShopValidator, validationMiddleware, shopController);
 shopRouter.get("/get-shop", verifyToken, getShopController);
+shopRouter.get("/get-shop-by-city", verifyToken, getShopBycity);
 export default shopRouter;

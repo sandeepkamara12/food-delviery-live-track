@@ -8,7 +8,7 @@ export const ShopProvider = ({ children }) => {
     const [loading, setLoading] = useState(false);
     const [shop, setShop] = useState(null);
     const [items, setItems] = useState(null);
-    const [currentItem, setCurrentItem] = useState(null);   
+    const [currentItem, setCurrentItem] = useState(null);
 
     // ---- API Functions ----
     const getShop = useCallback(async () => {
@@ -27,7 +27,7 @@ export const ShopProvider = ({ children }) => {
         }
     }, []);
 
-    const getShopItems = useCallback(async(shopId) => {
+    const getShopItems = useCallback(async (shopId) => {
         setLoading(true);
         try {
             const response = await axiosInstance.post(
@@ -42,7 +42,7 @@ export const ShopProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    },[]);
+    }, []);
 
     const createUpdateShop = useCallback(async (shopData) => {
         try {
@@ -55,7 +55,7 @@ export const ShopProvider = ({ children }) => {
         } catch (error) {
             return error?.response?.data || { error: true };
         }
-    },[]);
+    }, []);
 
     const createItem = useCallback(async (itemData) => {
         try {
@@ -67,7 +67,7 @@ export const ShopProvider = ({ children }) => {
         } catch (error) {
             return error?.response?.data || { error: true };
         }
-    },[]);
+    }, []);
 
     const updateItem = useCallback(async (itemId, formData) => {
         try {
@@ -79,9 +79,10 @@ export const ShopProvider = ({ children }) => {
         } catch (error) {
             return error?.response?.data || { error: true };
         }
-    },[]);
+    }, []);
 
     const getItemById = useCallback(async (itemId) => {
+        if (!itemId) return;
         try {
             const result = await axiosInstance.get(
                 `${import.meta.env.VITE_BA_URL}/api/item/get-item-by-id/${itemId}`
@@ -90,18 +91,31 @@ export const ShopProvider = ({ children }) => {
         } catch (error) {
             return error?.response?.data || { error: true };
         }
-    },[]);
+    }, []);
 
     const deleteItemById = useCallback(async (itemId) => {
+        if (!itemId) return;
         try {
             const response = await axiosInstance.get(
                 `${import.meta.env.VITE_BA_URL}/api/item/delete-item-by-id/${itemId}`
             );
-            return response?.data;            
-        } catch (error) {   
+            return response?.data;
+        } catch (error) {
             return error?.response?.data || { error: true };
         }
-    },[]);
+    }, []);
+
+    const fetchShopsByCity = useCallback(async (city) => {
+        if (!city) return;
+        try {
+            let response = await axiosInstance.get(`${import.meta.env.VITE_BA_URL}/api/shop/get-shop-by-city/?city=${encodeURIComponent(city)}`)
+            console.log("Shops by city response:", response);
+            return response?.data;
+        } catch (error) {
+            return error?.response?.data || { error: true };
+        }
+
+    }, []);
 
     // ---- Provider value ----
     const value = useMemo(() => ({
@@ -115,7 +129,8 @@ export const ShopProvider = ({ children }) => {
         getItemById,
         deleteItemById,
         getShop,
-        getShopItems
+        getShopItems,
+        fetchShopsByCity
     }), [
         shop,
         items,
@@ -127,7 +142,8 @@ export const ShopProvider = ({ children }) => {
         getItemById,
         deleteItemById,
         getShop,
-        getShopItems
+        getShopItems,
+        fetchShopsByCity
     ]);
 
     return (

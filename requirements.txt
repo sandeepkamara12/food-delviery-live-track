@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 Need to make dynamic path for email verification in register user controller.
 Mail verification while register user, path should be frontend instead of backend.
-=======
-Need to make dynamic path for email verification in register user controller.
-Mail verification while register user, path should be frontend instead of backend.
->>>>>>> 32773d1ff9f785065f7749fdc4e9540aa69c0d76
 While mail verification there should be a token in url instead of user id in encrypted format.
+Need to pesist data so on load context api data does not lost like while update shop, on refresh it does not show data.

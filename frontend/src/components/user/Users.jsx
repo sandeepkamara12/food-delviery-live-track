@@ -1,15 +1,36 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import moment from "moment";
+import CategoryCard from '../common/CategoryCard';
+import useGetCity from '../../hooks/useGetCity';
+import { useShop } from '../../hooks/useShop';
 
 const Users = () => {
   const { user } = useAuth();
+  const { city } = useGetCity();
+  const { fetchShopsByCity } = useShop();
+  console.log(city, 'city');
+  useEffect(() => {
+    if (!city) return;
+    const load = async () => {
+      const data = await fetchShopsByCity(city);
+      console.log("shops:", data);
+    };
+    load();
+  }, [city]);
+
   const formattedDate = useMemo(() => {
     return moment(user?.createdAt).format("DD MMMM YYYY");
   }, [user?.createdAt]);
-  
+
   return (
     <div>
+      <div className="flex flex-wrap items-center gap-y-2">
+        <CategoryCard />
+      </div>
+      <div className="flex flex-wrap items-center gap-y-2">
+        <h2>Best Shop in {city}</h2>
+      </div>
       <div className="flex items-center gap-x-3">
         {/* <Link to="/hola">Hola</Link> */}
         <div className="shrink-0 relative">
