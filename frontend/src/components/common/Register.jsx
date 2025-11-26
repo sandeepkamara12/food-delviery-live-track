@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link} from 'react-router-dom'
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import Text from '../ui/Text';
@@ -8,22 +8,21 @@ import Mobile from '../ui/Mobile';
 import ImageUpload from '../ui/ImageUpload';
 import { googleRegister, registerUser } from '../../api/authAPI.js';
 import { toast } from 'react-toastify';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { email, image, mobile, name, registerPassword } from '../../helpers/errors.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import { Bike, UserRound, UserRoundCog } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from '../../../firebase.js'
-import { useLocalStorage } from '../../hooks/useLocalStorage.js';
 const Register = () => {
-    const { loading } = useAuth();
-    const navigate = useNavigate();
-      const [accessToken, setAccessToken] = useLocalStorage("access_token", null);
-  const [refreshToken, setRefreshToken] = useLocalStorage("refresh_token", null);
+    const { loading, 
+        setAccessToken,
+        setRefreshToken
+     } = useAuth();
     const fileInputRef = useRef(null);
+    console.log("register component");
 
-
-    const handleGoogleAuth = async () => {
+    const handleGoogleAuth = useCallback(async () => {
         if (!mobile) {
             return alert('mobile required');
         }
@@ -31,21 +30,17 @@ const Register = () => {
         const result = await signInWithPopup(auth, provider);
 
         const output = await googleRegister(result?.user);
-        console.log(output, 'google register output');
         if (output?.success) {
             toast.success(output?.message);
-            setAccessToken(output.access_token);
-            setRefreshToken(output.refresh_token);
-            //  setUser(output?.data?.user);
-            navigate(output.user.role === "owner" ? "/owner" : "/users");
+            setAccessToken(output?.access_token);
+            setRefreshToken(output?.refresh_token);
         }
         else {
             toast.error(output?.message);
             setAccessToken(null);
             setRefreshToken(null);
         }
-    }
-
+    }, [setAccessToken, setRefreshToken]);
 
     const formik = useFormik({
         initialValues: {

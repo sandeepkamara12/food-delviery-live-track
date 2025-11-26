@@ -267,7 +267,7 @@ export const updateForgotPasswordController = async (req, res) => {
 export const loginUserController = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const isUserExist = await User.findOne({ email });
+        const isUserExist = await User.findOne({ email }).select("-image_public_id -provider");
         if (!isUserExist) {
             return res.status(400).json({ success: false, message: "Email and password are incorrect" });
         }
@@ -280,15 +280,9 @@ export const loginUserController = async (req, res) => {
         if (!isUserExist?.is_verified) {
             return res.status(400).json({ success: false, message: "Please verify your account!" });
         }
-        const userObj = isUserExist.toObject();
 
-        delete userObj.password;
-        delete userObj.is_verified;
-        delete userObj.image_public_id;
-        delete userObj.provider;
-
-        const access_token = await generateAccessToken({ user: userObj });
-        const refresh_token = await generateRefreshToken({ user: userObj });
+        const access_token = await generateAccessToken({ user: isUserExist });
+        const refresh_token = await generateRefreshToken({ user: isUserExist });
 
         res.cookie("token", access_token, {
             secure: false,
@@ -296,6 +290,11 @@ export const loginUserController = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true
         });
+        
+        const userObj = isUserExist.toObject();
+        delete userObj.password;
+        delete userObj.is_verified;
+
         return res.status(200).json({ success: true, message: "Login Successfully!", user:userObj, access_token, refresh_token, token_type: "Bearer" });
 
     } catch (error) {
@@ -314,7 +313,6 @@ export const userProfileController = async (req, res) => {
         }
         return res.status(200).json({ success: true, message: "Fetched current user information!", user: user });
     } catch (error) {
-        console.log(error, 'hi error');
         return res.status(500).json({
             success: false,
             message: error.message
@@ -508,7 +506,7 @@ export const logoutController = async (req, res) => {
 export const googleAuth = async (req, res) => {
     try {
         const { name, email, is_verified, mobile, image, role } = req.body;
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ email }).select("-password -is_verified -image_public_id -provider");
         let isNewUser = false;
         if (!user) {
             user = await User.create({
@@ -526,8 +524,8 @@ export const googleAuth = async (req, res) => {
                 await user.save();
             }
         }
-        console.log(user, 'google user token');
-        const access_token = await generateAccessToken({ user });
+        
+        const access_token = await generateAccessToken({ user: user });
         const refresh_token = await generateRefreshToken({ user: user });
 
         res.cookie("token", access_token, {
@@ -536,14 +534,13 @@ export const googleAuth = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true
         });
-
         return res.status(isNewUser ? 201 : 200).json({
             success: true,
             message: isNewUser
                 ? "User registered successfully!"
                 : "Login successful!",
             isNewUser,
-            user,
+            user: user,
             access_token, refresh_token, token_type: "Bearer" 
         })
     } catch (error) {

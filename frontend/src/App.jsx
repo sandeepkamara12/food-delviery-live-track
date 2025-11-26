@@ -4,28 +4,12 @@ import { Route, Routes } from 'react-router-dom';
 
 import { ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
-import Hola from './components/user/Hola';
-import Template from './pages/Template';
 import useGetCity from './hooks/useGetCity';
 import OwnerDashboard from './pages/OwnerDashboard';
 import CreateEditShop from './pages/CreateEditShop';
 import CreateItem from './pages/CreateItem';
 import EditItem from './pages/EditItem';
 import { ShopProvider } from './providers/ShopProvider';
-
-// import Users from './components/user/Users';
-// import Login from './components/common/Login';
-// import Register from './components/common/Register';
-// import SidebarLayout from './components/layouts/SidebarLayout';
-// import OuterLayout from './components/layouts/OuterLayout';
-// import MailVerification from './components/common/MailVerification';
-// import VerifyForgotPasswordOtp from './components/common/forgotPassword/VerifyForgotPasswordOtp';
-// import ResetPassword from './components/common/forgotPassword/ResetPassword';
-// import ForgotPassword from './components/common/forgotPassword/ForgotPassword';
-// import Loader from './components/common/Loader';
-// import PublicRoute from './routes/PublicRoute';
-// import PrivateRoute from './routes/PrivateRoute';
-
 
 const Login = lazy(()=>import('./components/common/Login'));
 const Users = lazy(()=>import('./components/user/Users'));
@@ -51,7 +35,6 @@ useGetCity();
         <Route element={<PublicRoute />} >
           <Route element={<OuterLayout />}>
             <Route path="/login" element={<Login />} />
-            {/* <Route path="/template" element={<Template />} /> */}
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-forgot-password-otp" element={<VerifyForgotPasswordOtp />} />
@@ -70,7 +53,6 @@ useGetCity();
             <Route path="/create-shop" element={<CreateEditShop />} />
             <Route path="/create-item" element={<CreateItem />} />
             <Route path="/edit-item/:itemId" element={<EditItem />} />
-            <Route path="/hola" element={<Hola />} />
           </Route>
         </Route>
       </Routes>

@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
+
   const login = useCallback(async (userCredentials) => {
     setLoading(true);
     try {
@@ -38,7 +39,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  },[]);
+  }, [
+    setAccessToken, setRefreshToken, setUser
+  ]);
 
   const logout = useCallback(async () => {
     try {
@@ -58,9 +61,11 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       toast.error(error?.response?.data?.message || "Logout failed");
     }
-  },[]);
+  }, [
+    navigate, setAccessToken, setRefreshToken
+  ]);
 
-   useEffect(() => {
+  useEffect(() => {
     const controller = new AbortController();
 
     const userProfile = async () => {
@@ -78,7 +83,10 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data.user);
       } catch (error) {
         if (!axios.isCancel(error)) {
-          console.log("Profile fetch failed:", error);
+          setAccessToken(null);
+          setRefreshToken(null);
+          setUser(null);
+          navigate("/login");
         }
       } finally {
         setAuthLoading(false);
@@ -90,29 +98,35 @@ export const AuthProvider = ({ children }) => {
     return () => controller.abort();
   }, [accessToken]);
 
-   const value = useMemo(() => ({
-         loading,
-        authLoading,
-        accessToken,
-        refreshToken,
-        user,
-        login,
-        logout,
-        isAuthenticated: !!accessToken,
-    }), [
-        loading,
-        authLoading,
-        accessToken,
-        refreshToken,
-        user,
-        login,
-        logout,
-    ]);
+  const value = useMemo(() => ({
+    loading,
+    authLoading,
+    accessToken,
+    refreshToken,
+    user,
+    login,
+    logout,
+    setUser,
+    setAccessToken,
+    setRefreshToken,
+    isAuthenticated: !!accessToken,
+  }), [
+    loading,
+    authLoading,
+    accessToken,
+    refreshToken,
+    user,
+    login,
+    logout,
+    setUser,
+    setAccessToken,
+    setRefreshToken
+  ]);
 
- 
+
   return <AuthContext.Provider
-      value={value}
-    >
-      {children}
-    </AuthContext.Provider>
+    value={value}
+  >
+    {children}
+  </AuthContext.Provider>
 };
