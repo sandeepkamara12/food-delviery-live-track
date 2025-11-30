@@ -1,22 +1,10 @@
 import { useState } from "react";
-import axiosInstance from "../axiosInstance";
 import { CartContext } from "../context/CartContext";
 import { useCallback } from "react";
 import { useMemo } from "react";
 
 export const CartProvider = ({ children }) => {
     const [carts, setCarts] = useState([]);
-    const [count, setCount] = useState(0);
-
-    const handleCountPlus = useCallback(() => {
-        setCount(prev => prev < 10 ? prev + 1 : 10)
-    }, [count]);
-    const handleCountMinus = useCallback(() => {
-        setCount(prev => prev > 0 ? prev - 1 : 0)
-    }, [count]);
-    const handleResetProductQuantity = useCallback(() => {
-        setCount(0);
-    });
 
     const addToCart = useCallback((item) => {
         setCarts(prevCart => {
@@ -31,20 +19,26 @@ export const CartProvider = ({ children }) => {
             return [...prevCart, item];
         })
     }, [])
-   
+
+    const updateQuantity = useCallback((id, amount) => {
+        setCarts(prev =>
+            prev.map(item =>
+                item.id === id
+                    ? { ...item, quantity: Math.max(0, Math.min(10, item.quantity + amount)) }
+                    : item
+            )
+        );
+    }, []);
+
     // ---- Provider value ----
     const value = useMemo(() => ({
         carts,
         addToCart,
-        handleCountPlus,
-        handleCountMinus,
-        handleResetProductQuantity
+        updateQuantity
     }), [
         carts,
         addToCart,
-        handleCountPlus,
-        handleCountMinus,
-        handleResetProductQuantity
+        updateQuantity
     ]);
 
     return (

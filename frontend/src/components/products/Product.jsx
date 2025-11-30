@@ -1,20 +1,14 @@
-import { useCallback, useState } from 'react';
+import {  useState } from 'react';
 import { useCart } from '../../hooks/useCart';
 import CartCounter from '../cart/CartCounter';
 const Product = ({ product }) => {
-    const [count, setCount] = useState(0);
 
-    const { addToCart, carts} = useCart();
+    const { addToCart, carts } = useCart();
 
-    const handleCountPlus = useCallback(() => {
-        setCount(prev => prev < 10 ? prev + 1 : 10)
-    }, [count]);
-    const handleCountMinus = useCallback(() => {
-        setCount(prev => prev > 0 ? prev - 1 : 0)
-    }, [count]);
-    const handleResetProductQuantity = useCallback(() => {
-        setCount(0);
-    });
+    const [qty, setQty] = useState(0);
+
+    const handlePlus = () => setQty(prev => Math.min(prev + 1, 10));
+    const handleMinus = () => setQty(prev => Math.max(prev - 1, 0));
 
     const newCartItem = {
         id: product?._id,
@@ -22,10 +16,9 @@ const Product = ({ product }) => {
         price: product?.price,
         image: product?.image,
         shop: product?.shop,
-        quantity: count,
+        quantity: qty,
         food_type: product?.food_type
     }
-    console.log(carts, 'carts');
     return (
         <div className="group flex flex-col h-full bg-white border border-gray-200 shadow-2xs rounded-xl dark:bg-neutral-900 dark:border-neutral-700 dark:shadow-neutral-700/70">
             <div className="h-52 flex flex-col justify-center items-center bg-blue-600 rounded-t-xl overflow-hidden">
@@ -45,8 +38,15 @@ const Product = ({ product }) => {
                     {product?.rating.average}<br />
                     {product?.rating?.count}
                 </p>
-                <CartCounter handleCountPlus={handleCountPlus} handleCountMinus={handleCountMinus} count={count} setCount={setCount} />
-                <button disabled={count===0} onClick={() => {addToCart(newCartItem); handleResetProductQuantity()}}>Add to cart</button>
+
+                <CartCounter
+                    count={qty}
+                    onPlus={handlePlus}
+                    onMinus={handleMinus}
+                    setQty={setQty}
+                />
+
+                <button disabled={qty === 0} onClick={() => { addToCart(newCartItem); setQty(0); }}>Add to cart</button>
             </div>
         </div>
     )

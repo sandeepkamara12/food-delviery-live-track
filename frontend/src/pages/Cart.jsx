@@ -1,19 +1,8 @@
-import React, { useCallback, useState } from 'react'
 import { useCart } from '../hooks/useCart'
 import CartCounter from '../components/cart/CartCounter';
 
 const Cart = () => {
-    const { carts } = useCart();
-    const [count, setCount] = useState(0);
-    const handleCountPlus = useCallback(() => {
-        setCount(prev => prev < 10 ? prev + 1 : 10)
-    }, [count]);
-    const handleCountMinus = useCallback(() => {
-        setCount(prev => prev > 0 ? prev - 1 : 0)
-    }, [count]);
-    const handleResetProductQuantity = useCallback(() => {
-        setCount(0);
-    });
+    const { carts, updateQuantity } = useCart();
     return (
         <section
             className=" relative z-10 after:contents-[''] after:absolute after:z-0 after:h-full xl:after:w-1/3 after:top-0 after:right-0 after:bg-gray-50">
@@ -60,13 +49,18 @@ const Cart = () => {
                                                 </div>
                                                 <div className="flex items-center max-[500px]:justify-center justify-center h-full max-md:mt-3">
                                                     <div className="flex items-center justify-center h-full">
-                                                       
-                                                        <CartCounter handleCountPlus={handleCountPlus} handleCountMinus={handleCountMinus} count={cart?.quantity} setCount={setCount} />
-                                                      
+
+                                                        <CartCounter
+                                                            count={cart.quantity}
+                                                            onPlus={() => updateQuantity(cart.id, +1)}
+                                                            onMinus={() => updateQuantity(cart.id, -1)}
+                                                            
+                                                        />
+
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center max-[500px]:justify-center md:justify-end max-md:mt-3 h-full">
-                                                    <p className="font-bold text-lg leading-8 text-gray-600 text-center transition-all duration-300 group-hover:text-indigo-600">${cart?.quantity*cart?.price}</p>
+                                                    <p className="font-bold text-lg leading-8 text-gray-600 text-center transition-all duration-300 group-hover:text-indigo-600">${cart?.quantity * cart?.price}</p>
                                                 </div>
                                             </div>
                                         </div>)
