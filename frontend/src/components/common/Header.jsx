@@ -4,12 +4,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ConciergeBell, Plus, Receipt, ShoppingCart } from 'lucide-react';
 import { useToggle } from '../../hooks/useToggle';
 import useGetCity from '../../hooks/useGetCity';
+import { useCart } from '../../hooks/useCart';
 
 const Header = ({ toggleSidebar, setToggleSidebar }) => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const { toggle, setToggle } = useToggle();
   const { city } = useGetCity();
+  const {carts} = useCart();
   return (
     <div className="sticky top-0 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-48 w-full bg-white border-b border-gray-200 text-sm py-2.5 lg:ps-65 dark:bg-neutral-800 dark:border-neutral-700">
       <nav className="px-4 sm:px-6 flex basis-full items-center w-full mx-auto">
@@ -74,8 +76,9 @@ const Header = ({ toggleSidebar, setToggleSidebar }) => {
 
             {
               user?.role === 'user' ?
-                <button type="button" className="size-9 relative inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full border border-transparent text-gray-800 hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700">
+                <button type="button" onClick={()=>navigate('/cart')} className="size-9 relative inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full border border-transparent text-gray-800 hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700">
                   <ShoppingCart className="shrink-0 size-4" />
+                  <span className="">{carts?.length}</span>
                   <span className="sr-only">User Cart</span>
                 </button>
                 : null

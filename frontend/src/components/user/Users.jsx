@@ -1,20 +1,24 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import moment from "moment";
 import CategoryCard from '../common/CategoryCard';
 import useGetCity from '../../hooks/useGetCity';
 import { useShop } from '../../hooks/useShop';
+import Product from '../products/Product';
+import ShopCard from '../shop/ShopCard';
 
 const Users = () => {
   const { user } = useAuth();
   const { city } = useGetCity();
-  const { fetchShopsByCity } = useShop();
-  console.log(city, 'city');
+  const { fetchShopsByCity, items } = useShop();
+  const [cityShops, setCityShops] = useState([]);
+
   useEffect(() => {
     if (!city) return;
     const load = async () => {
-      const data = await fetchShopsByCity(city);
-      console.log("shops:", data);
+      const shops = await fetchShopsByCity(city);
+      console.log(shops, 'shops');
+      setCityShops(shops);
     };
     load();
   }, [city]);
@@ -28,6 +32,25 @@ const Users = () => {
       <div className="flex flex-wrap items-center gap-y-2">
         <CategoryCard />
       </div>
+
+
+
+      <div className="px-4 sm:px-6 lg:px-8 py-12 lg:py-24 mx-auto">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+          {
+            cityShops?.length > 0 && cityShops?.map(shop => {
+              return (
+                <ShopCard shop={shop} key={shop?._id} />
+              )
+            })
+          }
+        </div>
+      </div>
+
+
+
+
       <div className="flex flex-wrap items-center gap-y-2">
         <h2>Best Shop in {city}</h2>
       </div>

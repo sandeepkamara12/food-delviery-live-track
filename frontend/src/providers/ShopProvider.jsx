@@ -110,7 +110,7 @@ export const ShopProvider = ({ children }) => {
         try {
             let response = await axiosInstance.get(`${import.meta.env.VITE_BA_URL}/api/shop/get-shop-by-city/?city=${encodeURIComponent(city)}`)
             console.log("Shops by city response:", response);
-            return response?.data;
+            return response?.data?.shops;
         } catch (error) {
             return error?.response?.data || { error: true };
         }

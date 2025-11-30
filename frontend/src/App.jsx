@@ -10,6 +10,9 @@ import CreateEditShop from './pages/CreateEditShop';
 import CreateItem from './pages/CreateItem';
 import EditItem from './pages/EditItem';
 import { ShopProvider } from './providers/ShopProvider';
+import ShopProducts from './components/shop/ShopProducts';
+import { CartProvider } from './providers/CartProvider';
+import Cart from './pages/Cart';
 
 const Login = lazy(()=>import('./components/common/Login'));
 const Users = lazy(()=>import('./components/user/Users'));
@@ -42,13 +45,15 @@ useGetCity();
             <Route path="/mail-verification" element={<MailVerification />} />
           </Route>
         </Route>
-        <Route element={<ShopProvider><PrivateRoute /></ShopProvider>}>
+        <Route element={<ShopProvider><CartProvider><PrivateRoute /></CartProvider></ShopProvider>}>
           <Route element={<SidebarLayout />}>
             <Route path="/users" element={<Users />} />
             <Route path="/owner" element={<OwnerDashboard />} />
             <Route path="/create-shop" element={<CreateEditShop />} />
             <Route path="/create-item" element={<CreateItem />} />
             <Route path="/edit-item/:itemId" element={<EditItem />} />
+            <Route path="/shop-items/:shopId" element={<ShopProducts />} />
+            <Route path="/cart" element={<Cart />} />
           </Route>
         </Route>
       </Routes>
